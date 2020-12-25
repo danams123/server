@@ -48,37 +48,37 @@ public class Database {
      * into the Database, returns true if successful.
      */
     boolean initialize(String coursesFilePath) {
-        try{
-            FileReader reader = new FileReader(coursesFilePath);
-            BufferedReader bufferedReader = new BufferedReader(reader);
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                String[] arr = line.split("\\|");
-               int courseNum = Integer.parseInt(arr[0]);
-               String courseName = arr[1];
-                int[] KDAM;
-                if(arr[2].equals("[]")){
-                    KDAM = new int[0];
+        //check if the courses file has been loaded already
+        if(Courses.isEmpty()) {
+            try {
+                FileReader reader = new FileReader(coursesFilePath);
+                BufferedReader bufferedReader = new BufferedReader(reader);
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    String[] arr = line.split("\\|");
+                    int courseNum = Integer.parseInt(arr[0]);
+                    String courseName = arr[1];
+                    int[] KDAM;
+                    if (arr[2].equals("[]")) {
+                        KDAM = new int[0];
+                    } else {
+                        KDAM = Stream.of(arr[2].substring(1, arr[2].length() - 1).split(",")).mapToInt(Integer::parseInt).toArray();
+                    }
+                    int maxNumOfStudents = Integer.parseInt(arr[3]);
+                    Courses.put(courseNum, new Course(courseNum, courseName, KDAM, maxNumOfStudents));
+                    coursesOrder.add(courseNum);
                 }
-                else {
-                    KDAM = Stream.of(arr[2].substring(1, arr[2].length() - 1).split(",")).mapToInt(Integer::parseInt).toArray();
-                }
-               int maxNumOfStudents = Integer.parseInt(arr[3]);
-               Courses.put(courseNum, new Course(courseNum, courseName, KDAM, maxNumOfStudents));
-               coursesOrder.add(courseNum);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            return true;
         }
-        return false;
+        return true;
     }
 
-    public boolean isAdmin(String username){return Users.get(username) instanceof Admin;}
-
-    public boolean isStudent(String username){return Users.get(username) instanceof Student;}
-
     public boolean adminRegister(String username, String password){
-        if(!Users.containsKey(username)){
+        if(!userExists(username)){
             Users.put(username, new Admin(username, password));
             return true;
         }
@@ -86,7 +86,7 @@ public class Database {
     }
 
     public boolean studentRegister(String username, String password){
-        if(!Users.containsKey(username)){
+        if(!userExists(username)){
             Users.put(username, new Student(username, password));
             return true;
         }
@@ -94,7 +94,7 @@ public class Database {
     }
 
     public boolean Login(String username, String password){
-        if((Users.containsKey(username)) && (!Users.get(username).isLogged()) && (Users.get(username).getPassword().equals(password))){
+        if(userExists(username) && !isLogged(username) && checkPass(username, password)){
             Users.get(username).Login();
             return true;
         }
@@ -102,7 +102,7 @@ public class Database {
     }
 
     public boolean Logout(String username){
-        if((Users.containsKey(username)) && (Users.get(username).isLogged())){
+        if(userExists(username)&& isLogged(username)){
             Users.get(username).Logout();
             return true;
         }
@@ -110,43 +110,47 @@ public class Database {
     }
 
     public synchronized boolean courseReg(String username, int courseNum){
-        if((Users.containsKey(username)) && (Users.get(username).isLogged()) && (isStudent(username))
-        && (!Users.get(username).getMyCourses().contains(courseNum)) && (Courses.containsKey(courseNum))
-        && (Courses.get(courseNum).getAvailableSeats() > 0)){
-            for(Integer KDAM : Courses.get(courseNum).getKDAMCoursesList()){
-                if(!Users.get(username).getMyCourses().contains(KDAM)){
-                    return false;
-                }
-            }
+        if(isStudent(username) && isLogged(username) && isStudent(username) && courseAvailable(username, courseNum)){
             Users.get(username).courseReg(Courses.get(courseNum));
             return true;
-            //TODO organized set of coursesnum and call for coursereg student
         }
         return false;
     }
 
-    public int[] KDAMCheck(int courseNum){return Courses.get(courseNum).getKDAMCoursesList();}
+    public int[] KDAMCheck(String username, int courseNum){
+        if(userExists(username) && isLogged(username) && courseExists(courseNum)) {
+            return Courses.get(courseNum).getKDAMCoursesList();
+        }
+        return null;
+    }
 
     public String courseStat(String admin, String username, int courseNum){
         //TODO check if String is good and how admin enters only
-        if(isAdmin(admin) && Users.containsKey(username) && isStudent(username) && Courses.containsKey(courseNum)) {
+        if(isAdmin(admin) && isStudent(username) && courseExists(courseNum)) {
             Course course = Courses.get(courseNum);
+            //creating an array so it could be sorted by String value
+            Set<String> students = course.getStudents().keySet();
+            ArrayList<String> toSend = new ArrayList<>(students.size());
+            for (String student: students){
+                toSend.add(student);
+            }
+            toSend.sort(String::compareTo);
             return "Course: (" + courseNum + ") " + course.getCourseName() + "\nSeats Available: " + course.getAvailableSeats()
-                    + " / " + course.getNumOfMaxStudents() + "\nStudents Registered: " + course.getStudents();
+                    + " / " + course.getNumOfMaxStudents() + "\nStudents Registered: " + toSend;
         }
         return null;
     }
 
     public String studentStat(String admin, String username){
-        if(isAdmin(admin)) {
+        if(isAdmin(admin) && isStudent(username)) {
             return "Student: " + username + "\nCourses: " + Users.get(username).getMyCourses();
         }
         return null;
     }
 
-    public synchronized String isRegistered(String username, int courseNum){
-        if(Users.containsKey(username) && Users.get(username).isLogged() && Courses.containsKey(courseNum)) {
-            if (Courses.get(courseNum).getStudents().contains(username)) {
+    public String isRegistered(String username, int courseNum){
+        if(isStudent(username) && isLogged(username) && courseExists(courseNum)) {
+            if (studentInCourse(username, courseNum)) {
                 return "REGISTERED";
             }
             return "NOT REGISTERED";
@@ -154,8 +158,8 @@ public class Database {
         return null;
     }
 
-    public synchronized boolean unRegister(String username, int courseNum){
-        if(Users.get(username).isLogged() && Courses.containsKey(courseNum) && Users.get(username).getMyCourses().contains(courseNum)){
+    public boolean unRegister(String username, int courseNum){
+        if(isStudent(username) && isLogged(username) && courseExists(courseNum) && studentInCourse(username, courseNum)){
             Users.get(username).unRegister(Courses.get(courseNum));
             return true;
         }
@@ -163,12 +167,49 @@ public class Database {
     }
 
     public ArrayList<Integer> getMyCourses(String username){
-        if(Users.get(username).isLogged() && isStudent(username)){
+        if(isStudent(username) && isLogged(username)){
             return Users.get(username).getMyCourses();
         }
         return null;
     }
 
+    //A getter for Student so the course he registers to will be put in the right place organized as how we got in from the file
     public ArrayList<Integer> getCoursesOrder(){return coursesOrder;}
+
+//checks for the functions
+    //Admin check - also checks existence
+    public boolean isAdmin(String username){return Users.get(username) instanceof Admin;}
+
+    //Student check - also checks existence
+    public boolean isStudent(String username){return Users.get(username) instanceof Student;}
+
+   //check if the user exists
+    public boolean userExists(String username){return Users.containsKey(username);}
+
+    //check if the user is logged in to the system
+    public boolean isLogged(String username){return Users.get(username).isLogged();}
+
+    //check if the course exists
+    public boolean courseExists(int courseNum){return Courses.containsKey(courseNum);}
+
+    //check if the student is registered to the course
+    public boolean studentInCourse(String username, int courseNum){return Users.get(username).getMyCourses().contains(courseNum);}
+
+    //check if the password given is correct
+    public boolean checkPass(String username, String password){return Users.get(username).getPassword().equals(password);}
+
+    //check if the course exists, if the student is registered to the course, if the course has available seats and if
+    // the student has all the KDAM courses
+    public boolean courseAvailable(String username, int courseNum){
+        if(courseExists(courseNum) && studentInCourse(username, courseNum) && Courses.get(courseNum).getAvailableSeats() > 0){
+            for (Integer KDAM : Courses.get(courseNum).getKDAMCoursesList()) {
+                if (!Users.get(username).getMyCourses().contains(KDAM)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 
 }

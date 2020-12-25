@@ -18,6 +18,7 @@ public class Student extends User{
 
     public void courseReg(Course toAdd){
         toAdd.addStudent(getUserName());
+        //putting it in the right location oredered as we got it from the courses file - now in coursesOrder of Database
         boolean stop = false;
         for (int i = 0; i < myCourses.size() && !stop; i++) {
             if(database.getCoursesOrder().indexOf(myCourses.get(i)) > database.getCoursesOrder().indexOf(toAdd.getCourseNum())){
@@ -34,4 +35,5 @@ public class Student extends User{
         toDel.delStudent(getUserName());
         myCourses.remove(toDel.getCourseNum());
     }
+
 }

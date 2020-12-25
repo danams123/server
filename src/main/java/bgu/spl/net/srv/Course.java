@@ -9,16 +9,14 @@ public class Course {
     private String courseName;
     private int[] KDAMCoursesList;
     private int numOfMaxStudents;
-    private AtomicInteger availableSeats;
-    private ArrayList<String> Students;
+    private ConcurrentHashMap<String,String> Students;
 
     public Course(int courseNum, String courseName, int[] KDAMCoursesList, int numOfMaxStudents){
         this.courseNum = courseNum;
         this.courseName = courseName;
         this.KDAMCoursesList = KDAMCoursesList;
         this.numOfMaxStudents = numOfMaxStudents;
-        this.availableSeats = new AtomicInteger(numOfMaxStudents);
-        this.Students = new ArrayList<String>();
+        this.Students = new ConcurrentHashMap<>();
     }
 
     public int getCourseNum(){return courseNum;}
@@ -29,20 +27,15 @@ public class Course {
 
     public int getNumOfMaxStudents(){return numOfMaxStudents;}
 
-    public int getAvailableSeats(){return availableSeats.intValue();}
+    public int getAvailableSeats(){return numOfMaxStudents - Students.size();}
 
-    public ArrayList<String> getStudents(){return Students;}
+    public ConcurrentHashMap<String, String> getStudents(){return Students;}
 
     public void addStudent(String username){
-        int oldValue = availableSeats.intValue();
-        availableSeats.compareAndSet(oldValue, oldValue - 1);
-        Students.add(username);
-        Students.sort(String::compareTo);
+        Students.putIfAbsent(username, null);
     }
 
     public void delStudent(String username){
-        int oldValue = availableSeats.intValue();
-        availableSeats.compareAndSet(oldValue, oldValue + 1);
         Students.remove(username);
     }
 }
