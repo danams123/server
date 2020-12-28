@@ -50,6 +50,7 @@ public class Database {
      * loades the courses from the file path specified
      * into the Database, returns true if successful.
      */
+
     boolean initialize(String coursesFilePath) {
         //check if the courses file has been loaded already
         if(Courses.isEmpty()) {//is it good?
@@ -121,7 +122,7 @@ public class Database {
     }
 
     public String KDAMCheck(String username, int courseNum){
-        if(userExists(username) && isLogged(username) && courseExists(courseNum)) {
+        if(isStudent(username) && isLogged(username) && courseExists(courseNum)) {
             return Arrays.toString(Courses.get(courseNum).getKDAMCoursesList());
         }
         return "ERROR";
