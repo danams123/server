@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -34,12 +35,14 @@ public class Database {
       this.Users = new ConcurrentHashMap<String, User>();
       this.Courses = new ConcurrentHashMap<Integer, Course>();
       this.coursesOrder = new ArrayList<Integer>();
+      initialize("./Courses.txt");//is it good???
     }
 
     /**
      * Retrieves the single instance of this class.
      */
     public static Database getInstance() {
+        //can initialize from here as well
         return SingletonHolder.instance;
     }
 
@@ -49,7 +52,7 @@ public class Database {
      */
     boolean initialize(String coursesFilePath) {
         //check if the courses file has been loaded already
-        if(Courses.isEmpty()) {
+        if(Courses.isEmpty()) {//is it good?
             try {
                 FileReader reader = new FileReader(coursesFilePath);
                 BufferedReader bufferedReader = new BufferedReader(reader);
@@ -77,56 +80,55 @@ public class Database {
         return true;
     }
 
-    public boolean adminRegister(String username, String password){
+    public String adminRegister(String username, String password){
         if(!userExists(username)){
             Users.put(username, new Admin(username, password));
-            return true;
+            return "ACK";
         }
-        return false;
+        return "ERROR";
     }
 
-    public boolean studentRegister(String username, String password){
+    public String studentRegister(String username, String password){
         if(!userExists(username)){
             Users.put(username, new Student(username, password));
-            return true;
+            return "ACK";
         }
-        return false;
+        return "ERROR";
     }
 
-    public boolean Login(String username, String password){
+    public String Login(String username, String password){
         if(userExists(username) && !isLogged(username) && checkPass(username, password)){
             Users.get(username).Login();
-            return true;
+            return "ACK";
         }
-        return false;
+        return "ERROR";
     }
 
-    public boolean Logout(String username){
+    public String Logout(String username){
         if(userExists(username)&& isLogged(username)){
             Users.get(username).Logout();
-            return true;
+            return "ACK";
         }
-        return false;
+        return "ERROR";
     }
 
-    public synchronized boolean courseReg(String username, int courseNum){
+    public synchronized String courseReg(String username, int courseNum){
         if(isStudent(username) && isLogged(username) && isStudent(username) && courseAvailable(username, courseNum)){
             Users.get(username).courseReg(Courses.get(courseNum));
-            return true;
+            return "ACK";
         }
-        return false;
+        return "ERROR";
     }
 
-    public int[] KDAMCheck(String username, int courseNum){
+    public String KDAMCheck(String username, int courseNum){
         if(userExists(username) && isLogged(username) && courseExists(courseNum)) {
-            return Courses.get(courseNum).getKDAMCoursesList();
+            return Arrays.toString(Courses.get(courseNum).getKDAMCoursesList());
         }
-        return null;
+        return "ERROR";
     }
 
-    public String courseStat(String admin, String username, int courseNum){
-        //TODO check if String is good and how admin enters only
-        if(isAdmin(admin) && isStudent(username) && courseExists(courseNum)) {
+    public String courseStat(String admin, int courseNum){
+        if(isAdmin(admin) && isLogged(admin) && courseExists(courseNum)) {
             Course course = Courses.get(courseNum);
             //creating an array so it could be sorted by String value
             Set<String> students = course.getStudents().keySet();
@@ -138,14 +140,14 @@ public class Database {
             return "Course: (" + courseNum + ") " + course.getCourseName() + "\nSeats Available: " + course.getAvailableSeats()
                     + " / " + course.getNumOfMaxStudents() + "\nStudents Registered: " + toSend;
         }
-        return null;
+        return "ERROR";
     }
 
     public String studentStat(String admin, String username){
-        if(isAdmin(admin) && isStudent(username)) {
+        if(isAdmin(admin) && isLogged(admin) && isStudent(username)) {
             return "Student: " + username + "\nCourses: " + Users.get(username).getMyCourses();
         }
-        return null;
+        return "ERROR";
     }
 
     public String isRegistered(String username, int courseNum){
@@ -155,22 +157,22 @@ public class Database {
             }
             return "NOT REGISTERED";
         }
-        return null;
+        return "ERROR";
     }
 
-    public boolean unRegister(String username, int courseNum){
+    public String unRegister(String username, int courseNum){
         if(isStudent(username) && isLogged(username) && courseExists(courseNum) && studentInCourse(username, courseNum)){
             Users.get(username).unRegister(Courses.get(courseNum));
-            return true;
+            return "ACK";
         }
-        return false;
+        return "ERROR";
     }
 
-    public ArrayList<Integer> getMyCourses(String username){
+    public String getMyCourses(String username){
         if(isStudent(username) && isLogged(username)){
-            return Users.get(username).getMyCourses();
+            return Users.get(username).getMyCourses().toString();
         }
-        return null;
+        return "ERROR";
     }
 
     //A getter for Student so the course he registers to will be put in the right place organized as how we got in from the file
