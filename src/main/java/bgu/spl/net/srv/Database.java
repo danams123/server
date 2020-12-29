@@ -1,7 +1,5 @@
 package bgu.spl.net.srv;
 
-import jdk.internal.org.objectweb.asm.tree.InnerClassNode;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
