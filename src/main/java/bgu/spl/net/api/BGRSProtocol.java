@@ -15,14 +15,15 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
         String output;
         if (msg.getOPcode() == 1) {
             output = DB.adminRegister(msg.getUserName(), msg.getPassword()) + " " + msg.getOPcode();
-            senderName = msg.getUserName();
         }
         else if (msg.getOPcode() == 2) {
             output = DB.studentRegister(msg.getUserName(), msg.getPassword()) + " " + msg.getOPcode();
-            senderName = msg.getUserName();
         }
         else if (msg.getOPcode() == 3) {
             output = DB.Login(msg.getUserName(), msg.getPassword()) + " " + msg.getOPcode();
+            if(output.equals("ACK")) {
+                senderName = msg.getUserName();
+            }
         }
         else if (msg.getOPcode() == 4) {
             shouldTerminate = true;

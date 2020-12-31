@@ -1,6 +1,5 @@
 package bgu.spl.net.impl.echo;
 
-import bgu.spl.net.api.outputMessage;
 import bgu.spl.net.impl.rci.Command;
 
 import java.io.*;

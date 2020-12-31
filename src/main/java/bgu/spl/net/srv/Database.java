@@ -136,15 +136,15 @@ public class Database {
                 toSend.add(student);
             }
             toSend.sort(String::compareTo);
-            return "Course: (" + courseNum + ") " + course.getCourseName() + "\nSeats Available: " + course.getAvailableSeats()
-                    + " / " + course.getNumOfMaxStudents() + "\nStudents Registered: " + toSend;
+            return "Course: (" + courseNum + ") " + course.getCourseName() + "\0Seats Available: " + course.getAvailableSeats()
+                    + " / " + course.getNumOfMaxStudents() + "\0Students Registered: " + toSend;
         }
         return "ERROR";
     }
 
     public String studentStat(String admin, String username){
         if(isAdmin(admin) && isLogged(admin) && isStudent(username)) {
-            return "Student: " + username + "\nCourses: " + Users.get(username).getMyCourses();
+            return "Student: " + username + "\0Courses: " + Users.get(username).getMyCourses();
         }
         return "ERROR";
     }
@@ -173,6 +173,10 @@ public class Database {
         }
         return "ERROR";
     }
+
+    public ConcurrentHashMap<Integer, Course> getCourses(){return Courses;}
+
+    public ConcurrentHashMap<String, User> getUsers(){return Users;}
 
     //A getter for Student so the course he registers to will be put in the right place organized as how we got in from the file
     public ArrayList<Integer> getCoursesOrder(){return coursesOrder;}

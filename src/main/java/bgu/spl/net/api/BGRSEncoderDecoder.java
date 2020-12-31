@@ -7,29 +7,23 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class BGRSEncoderDecoder implements MessageEncoderDecoder<Serializable> {
+public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
     /*
-    TODO change the impl of BGRS message to lambda in encoder decoder that extends command, in process just run execute.
-    TODO in execute make 11 options calling the functions in database and add database as a field in encdec.
-    TODO change ecndec to a similiar version of RCI using serializable.
-    TODO check about the cin and the strings that we send as output, is it good for coursestat etc?
-    TODO check if we need a main to run the server and where to use DB.init(its a pacakage only method - from within).
-    TODO add a clear method to database when restarting the server
-    TODO understand how sendbytes and getbytes work in client c++
+    TODO
      */
 
     private byte[] bytes = new byte[1 << 10]; //start with 1k
     private int len = 0;
-    private int OPcode = 0;
+    private short OPcode = 0;
     private String output = null;
 
     @Override
-    public Serializable decodeNextByte(byte nextByte) {
+    public BGRSMessage decodeNextByte(byte nextByte) {
       if(OPcode == 0){
           if(len == 1){
             bytes[len] = nextByte;
-            OPcode = ByteBuffer.wrap(bytes).getInt();
+//            OPcode = ByteBuffer.wrap(bytes).getInt();
             len = 0;
           }
           else{
@@ -40,7 +34,9 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<Serializable> {
           return dCase1(nextByte);
       }
       else if(OPcode == 4 || OPcode == 11){
-          return new BGRSMessage(OPcode);
+          short OP = OPcode;
+          OPcode = 0;
+          return new BGRSMessage(OP);
       }
       else if(OPcode == 8 || OPcode == 10){
           return dCase2(nextByte);
@@ -52,13 +48,37 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<Serializable> {
     }
 
     @Override
-    public byte[] encode(Serializable msg) {
+    public byte[] encode(BGRSMessage msg) {
 //        return (msg.output + "\n").getBytes();
-        return null;
+//        return serializeObject(msg);
+        byte[] bytesArr = new byte[5];
+        if(msg.getUserName() == "ACK"){
+            OPcode = 12;
+        }
+        else{
+            OPcode = 13;
+        }
+        bytesArr[0] = (byte)((OPcode >> 8) & 0xFF);
+        bytesArr[1] = (byte)(OPcode & 0xFF);
+        bytesArr[2] = (byte)((msg.getOPcode() >> 8) & 0xFF);
+        bytesArr[3] = (byte)(msg.getOPcode() & 0xFF);
+        bytesArr[4] = '\n';
+        OPcode = 0;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+        try {
+            outputStream.write(bytesArr);
+            outputStream.write((msg.getOutput() + '\n').getBytes());
+            return outputStream.toByteArray( );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
     }//TODO need to check a different style
 
     //OPcode 1,2,3
-    private Serializable dCase1(byte nextByte){
+    private BGRSMessage dCase1(byte nextByte){
         if (nextByte == 0 && output == null) {
             output = popString();
             return null;
@@ -66,19 +86,23 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<Serializable> {
         else if(nextByte == 0) {
             String toSend = output;
             output = null;
-            return new BGRSMessage(OPcode, toSend, popString());
+            short OP = OPcode;
+            OPcode = 0;
+            return new BGRSMessage(OP, toSend, popString());
         }
         pushByte(nextByte);
         return null;
     }
 
     //OPcode 5,6,7,9,10
-    private Serializable dCase2(byte nextByte){
+    private BGRSMessage dCase2(byte nextByte){
         if(len == 1){
             bytes[len] = nextByte;
             int courseNum = ByteBuffer.wrap(bytes).getInt();
             len = 0;
-            return new BGRSMessage(OPcode,courseNum);
+            short OP = OPcode;
+            OPcode = 0;
+            return new BGRSMessage(OP,courseNum);
         }
         bytes[len++] = nextByte;
         pushByte(nextByte);
@@ -86,9 +110,11 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<Serializable> {
     }
 
     //OPcode 8
-    private Serializable dCase3(byte nextByte){
+    private BGRSMessage dCase3(byte nextByte){
         if(nextByte == 0) {
-            return new BGRSMessage(popString(), OPcode);
+            short OP = OPcode;
+            OPcode = 0;
+            return new BGRSMessage(popString(), OP);
         }
         pushByte(nextByte);
         return null;
@@ -108,5 +134,28 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<Serializable> {
         String result = new String(bytes, 0, len, StandardCharsets.UTF_8);
         len = 0;
         return result;
+    }
+
+    private byte[] serializeObject(BGRSMessage message) {
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+
+            //placeholder for the object size
+            for (int i = 0; i < 4; i++) {
+                bytes.write(0);
+            }
+
+            ObjectOutput out = new ObjectOutputStream(bytes);
+            out.writeObject(message);
+            out.flush();
+            byte[] result = bytes.toByteArray();
+
+            //now write the object size
+            ByteBuffer.wrap(result).putInt(result.length - 4);
+            return result;
+
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("cannot serialize object", ex);
+        }
     }
 }
