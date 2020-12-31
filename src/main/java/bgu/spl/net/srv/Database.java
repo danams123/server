@@ -29,7 +29,7 @@ public class Database {
         private static Database instance = new Database();
     }
     //to prevent user from creating new Database
-    private Database() {
+    Database() {
       this.Users = new ConcurrentHashMap<String, User>();
       this.Courses = new ConcurrentHashMap<Integer, Course>();
       this.coursesOrder = new ArrayList<Integer>();
@@ -215,6 +215,11 @@ public class Database {
             return true;
         }
         return false;
+    }
+    public void clear (){
+        Users.clear();
+        Courses.clear();
+        coursesOrder = null;
     }
 
 }

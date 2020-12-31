@@ -2,13 +2,13 @@ package bgu.spl.net.api;
 
 import bgu.spl.net.srv.Database;
 
-import java.io.Serializable;
 
 public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
 
     private Database DB = Database.getInstance();
     private boolean shouldTerminate = false;
     private String senderName = null;
+
 
     @Override
     public BGRSMessage process(BGRSMessage msg) {
