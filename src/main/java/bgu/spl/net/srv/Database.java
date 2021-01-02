@@ -216,8 +216,8 @@ public class Database {
     // the student has all the KDAM courses
     public boolean courseAvailable(String username, int courseNum){
         System.out.println("in courseAvailable");
-        System.out.println(Courses.get(courseNum).getAvailableSeats());
-        if(courseExists(courseNum) && studentInCourse(username, courseNum) && Courses.get(courseNum).getAvailableSeats() > 0){
+//        System.out.println(Courses.get(courseNum).getAvailableSeats());
+        if(courseExists(courseNum) && !studentInCourse(username, courseNum) && Courses.get(courseNum).getAvailableSeats() > 0){
             for (Integer KDAM : Courses.get(courseNum).getKDAMCoursesList()) {
                 System.out.println("in the loop of KDAM");
                 System.out.println(Users.get(username).getMyCourses().contains(KDAM));

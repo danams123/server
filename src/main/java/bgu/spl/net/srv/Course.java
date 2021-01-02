@@ -35,7 +35,7 @@ public class Course {
     public ConcurrentHashMap<String, String> getStudents(){return Students;}
 
     public void addStudent(String username){
-        Students.putIfAbsent(username, null);
+        Students.putIfAbsent(username, username);
     }
 
     public void delStudent(String username){

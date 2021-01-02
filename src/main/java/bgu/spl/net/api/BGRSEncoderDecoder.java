@@ -64,9 +64,11 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 //        return serializeObject(msg);
         byte[] bytesArr = new byte[5];
         if(msg.getACKER().equals("ACK")){
+            System.out.println("in ack 2");
             OPcode = 12;
         }
         else{
+            System.out.println("in error 2");
             OPcode = 13;
         }
         bytesArr[0] = (byte)((OPcode >> 8) & 0xFF);
@@ -79,6 +81,7 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
         try {
             outputStream.write(bytesArr);
             if(msg.getCase()) {
+                System.out.println("in special case 2");
                 outputStream.write((msg.getOutput() + '\n').getBytes());
             }
             System.out.println("finished encode now send");

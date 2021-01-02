@@ -27,7 +27,8 @@ class DatabaseTest {
         assertTrue(db.getUsers().contains("Marina"));
         assertEquals("ERROR", db.adminRegister("Shani","1234")); //ERROR 1 - the admin is already registered in the server
         db.studentRegister("Lior","2121"); //ACK 2-register student
-        assertEquals("ERROR", db.adminRegister("Lior","2121")); //ERROR 2 - the admin is already registered in the server
+        assertEquals("ERROR", db.adminRegister("Lior","2121"));//ERROR 2 - the admin is already registered in the server
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -40,6 +41,7 @@ class DatabaseTest {
         assertEquals("ERROR", db.studentRegister("Shani","1234")); //ERROR 1 - the admin is already registered in the server
         db.adminRegister("Lior","2121"); //ACK 2-register student
         assertEquals("ERROR", db.studentRegister("Lior","2121"));
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -50,6 +52,7 @@ class DatabaseTest {
         assertTrue(db.getUsers().get("DanTheMan").isLogged());
         assertEquals("ERROR", db.Login("DanTheMan","12345"));
         assertEquals("ERROR", db.Login("DanTheMan","543"));
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -60,6 +63,7 @@ class DatabaseTest {
         assertTrue(db.getUsers().get("DanTheMan").isLogged());
         assertEquals("ERROR", db.Login("DanTheMan", "12345"));
         assertEquals("ERROR", db.Login("DanTheMan", "543"));
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -73,6 +77,7 @@ class DatabaseTest {
         assertEquals("ACK",db.courseReg("Shani", 101)); //ACK 5- registered successfully
         db.studentRegister("Lior","2121");
         db.Login("Lior","2121");
+        db.courseReg("Zoro rononoaZ",101);
         assertEquals("ERROR",db.courseReg("Lior", 101)); //ERROR 5- no seats are available in this course
         assertEquals("ACK",db.courseReg("Zoro rononoaZ", 201));//ACK 5- registered successfully
         assertEquals("ERROR", db.courseReg("Lior",201));//ERROR 5-  the student does not have all the Kdam courses
@@ -81,6 +86,7 @@ class DatabaseTest {
         db.adminRegister("Marina", "1024");//ACK 1- register admin
         db.Login("Marina", "1024");
         assertEquals("ERROR", db.courseReg("Marina",101));//ERROR 5- admin can’t register to courses
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -91,6 +97,7 @@ class DatabaseTest {
         System.out.println(db.KDAMCheck("Shani",301));// [103,102,101,201,202]
        assertEquals("ERROR",db.KDAMCheck("Shani",882));//ERROR 6 -no such course
         assertEquals("ERROR",db.KDAMCheck("Zoro",101));//ERROR 6- who the f*** is that
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -106,6 +113,7 @@ class DatabaseTest {
         db.adminRegister("Marina", "1024");
         db.Login("Marina", "1024");
         assertEquals("Course: (101) Algebra2\0Seats Available: 3/5 \\0Students Registered: \" Zoro rononoaZ ,Regnar", db.courseStat("Marina",101));
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -118,6 +126,7 @@ class DatabaseTest {
         db.Login("Marina", "1024");
         assertEquals("Student: Zoro rononoaZ \0Courses: 101",db.studentStat("Marina","Zoro rononoaZ"));
         assertEquals("ERROR", db.studentStat("Marina", "Regnar"));//ERROR 8 -no such student
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -128,6 +137,7 @@ class DatabaseTest {
         assertEquals("NOT REGISTERED", db.isRegistered("Shaniqua",101) );
         db.courseReg("Shaniqua",101);
         assertEquals("REGISTERED",db.isRegistered("Shaniqua",101));
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -141,6 +151,7 @@ class DatabaseTest {
         assertTrue(db.getUsers().get("Shaniqua").getMyCourses().contains(101));
         assertEquals("ACK", db.unRegister("Shaniqua",101));//ACK 10- unregistered successfully
         assertTrue(!db.getUsers().get("Shaniqua").getMyCourses().contains(101));
+        db.clear();
     }
 
     @org.junit.jupiter.api.Test
@@ -152,6 +163,6 @@ class DatabaseTest {
         db.courseReg("Aerosmith",101);
         db.courseReg("Aerosmith",201);
         assertEquals("[101,201]",db.getMyCourses("Aerosmith"));
-
+        db.clear();
     }
 }

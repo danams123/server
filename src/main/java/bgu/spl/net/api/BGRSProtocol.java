@@ -23,7 +23,7 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
         else if (msg.getOPcode() == 3) {
             output = DB.Login(msg.getUserName(), msg.getPassword());
             System.out.println(output);
-            if(output.equals("ACK 3")) {
+            if(output.equals("ACK")) {
                 senderName = msg.getUserName();
                 System.out.println(senderName);
             }
@@ -58,16 +58,19 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
             output = DB.getMyCourses(senderName);
         }
         if(output.equals("ERROR")){
+            System.out.println("in error");
 //            output = output + " " + msg.getOPcode();
             return new BGRSMessage(msg.getOPcode(), "", "ERROR", false);
         }
         else if(output.equals("ACK")) {
+            System.out.println("in ack");
             return new BGRSMessage(msg.getOPcode(), "","ACK", false);
         }
         else{
+            System.out.println("in special ack");
             return new BGRSMessage(msg.getOPcode(), output, "ACK", true);
         }
-        }
+    }
 
 
     @Override
