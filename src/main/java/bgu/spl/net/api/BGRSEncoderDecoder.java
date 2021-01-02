@@ -112,7 +112,7 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
     private BGRSMessage dCase2(byte nextByte){
         if(len == 1){
             bytes[len] = nextByte;
-            int courseNum = ByteBuffer.wrap(bytes).getInt();
+            short courseNum = ByteBuffer.wrap(bytes).getShort();
             len = 0;
             short OP = OPcode;
             OPcode = 0;
