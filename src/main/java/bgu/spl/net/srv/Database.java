@@ -172,7 +172,13 @@ public class Database {
 
     public String getMyCourses(String username){
         if(isStudent(username) && isLogged(username)){
-            return Users.get(username).getMyCourses().toString();
+            String str = Users.get(username).getMyCourses().toString();
+            String[] s = str.split(" ");
+            str = null;
+            for(String elem: s){
+                str = str + elem;
+            }
+            return str;
         }
         return "ERROR";
     }
