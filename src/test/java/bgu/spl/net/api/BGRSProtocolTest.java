@@ -9,17 +9,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class BGRSProtocolTest {
     private Database db;
     BGRSProtocol p = new BGRSProtocol();
-    BGRSMessage m1 = new BGRSMessage(1,"Shaniqua","1234");
-    BGRSMessage m2 = new BGRSMessage(2,"Shaniqua","012");
-    BGRSMessage m3 = new BGRSMessage(3,"Shaniqua","1234");
-    BGRSMessage m4 = new BGRSMessage(4);
-    BGRSMessage m5 = new BGRSMessage(5,101);
-    BGRSMessage m6 = new BGRSMessage(6,201);
-    BGRSMessage m7 = new BGRSMessage(7,101);
-    BGRSMessage m8 = new BGRSMessage("Shaniqua",8);
-    BGRSMessage m9 = new BGRSMessage(9,101);
-    BGRSMessage m10 = new BGRSMessage(10,101);
-    BGRSMessage m11 = new BGRSMessage(11);
+    BGRSMessage m1 = new BGRSMessage((short) 1,"Shaniqua","1234");
+    BGRSMessage m2 = new BGRSMessage((short)2,"Shaniqua","012");
+    BGRSMessage m3 = new BGRSMessage((short)3,"Shaniqua","1234");
+    BGRSMessage m4 = new BGRSMessage((short)4);
+    BGRSMessage m5 = new BGRSMessage((short)5,(short)101);
+    BGRSMessage m6 = new BGRSMessage((short)6,(short)201);
+    BGRSMessage m7 = new BGRSMessage((short)7,(short)101);
+    BGRSMessage m8 = new BGRSMessage("Shaniqua",(short)8);
+    BGRSMessage m9 = new BGRSMessage((short)9,(short)101);
+    BGRSMessage m10 = new BGRSMessage((short)10,(short)101);
+    BGRSMessage m11 = new BGRSMessage((short)11);
 
     @BeforeEach
     void setUp() {

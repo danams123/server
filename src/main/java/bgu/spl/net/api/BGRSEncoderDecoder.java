@@ -63,7 +63,7 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 //        return (msg.output + "\n").getBytes();
 //        return serializeObject(msg);
         byte[] bytesArr = new byte[5];
-        if(msg.getUserName() == "ACK"){
+        if(msg.getACKER().equals("ACK")){
             OPcode = 12;
         }
         else{
@@ -78,7 +78,9 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
         try {
             outputStream.write(bytesArr);
-            outputStream.write((msg.getOutput() + '\n').getBytes());
+            if(msg.getCase()) {
+                outputStream.write((msg.getOutput() + '\n').getBytes());
+            }
             System.out.println("finished encode now send");
             return outputStream.toByteArray( );
         } catch (IOException e) {
@@ -111,8 +113,8 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
     //OPcode 5,6,7,9,10
     private BGRSMessage dCase2(byte nextByte){
         if(len == 1){
-            bytes[len] = nextByte;
-            short courseNum = ByteBuffer.wrap(bytes).getShort();
+            short courseNum = (short) ((bytes[0] & 0xff) << 8);
+            courseNum += (short) (nextByte & 0xff);
             len = 0;
             short OP = OPcode;
             OPcode = 0;

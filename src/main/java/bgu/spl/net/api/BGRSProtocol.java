@@ -15,13 +15,13 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
         String output;
         System.out.println("in process");
         if (msg.getOPcode() == 1) {
-            output = DB.adminRegister(msg.getUserName(), msg.getPassword()) + " " + msg.getOPcode();
+            output = DB.adminRegister(msg.getUserName(), msg.getPassword());
         }
         else if (msg.getOPcode() == 2) {
-            output = DB.studentRegister(msg.getUserName(), msg.getPassword()) + " " + msg.getOPcode();
+            output = DB.studentRegister(msg.getUserName(), msg.getPassword());
         }
         else if (msg.getOPcode() == 3) {
-            output = DB.Login(msg.getUserName(), msg.getPassword()) + " " + msg.getOPcode();
+            output = DB.Login(msg.getUserName(), msg.getPassword());
             System.out.println(output);
             if(output.equals("ACK 3")) {
                 senderName = msg.getUserName();
@@ -30,14 +30,14 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
         }
         else if (msg.getOPcode() == 4) {
             System.out.println(senderName);
-            output = DB.Logout(senderName) + " " + msg.getOPcode();
+            output = DB.Logout(senderName);
             if(output.equals("ACK 4")){
                 shouldTerminate = true;
                 DB.clear(); //TODO is it ok???
             }
         }
         else if (msg.getOPcode() == 5) {
-            output = DB.courseReg(senderName, msg.getCourseNum()) + " " + msg.getOPcode();
+            output = DB.courseReg(senderName, msg.getCourseNum());
         }
         else if (msg.getOPcode() == 6) {
             output = DB.KDAMCheck(senderName, msg.getCourseNum());
@@ -52,15 +52,21 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
             output = DB.isRegistered(senderName, msg.getCourseNum());
         }
         else if (msg.getOPcode() == 10) {
-            output = DB.unRegister(msg.getUserName(), msg.getCourseNum()) + " " + msg.getOPcode();
+            output = DB.unRegister(msg.getUserName(), msg.getCourseNum());
         }
         else {
             output = DB.getMyCourses(senderName);
         }
         if(output.equals("ERROR")){
-            output = output + " " + msg.getOPcode();
+//            output = output + " " + msg.getOPcode();
+            return new BGRSMessage(msg.getOPcode(), "", "ERROR", false);
         }
-        return new BGRSMessage(msg.getOPcode(), output);
+        else if(output.equals("ACK")) {
+            return new BGRSMessage(msg.getOPcode(), "","ACK", false);
+        }
+        else{
+            return new BGRSMessage(msg.getOPcode(), output, "ACK", true);
+        }
         }
 
 

@@ -70,6 +70,7 @@ public class Database {
                     Courses.put(courseNum, new Course(courseNum, courseName, KDAM, maxNumOfStudents));
                     coursesOrder.add(courseNum);
                 }
+                System.out.println("initialized");
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;
@@ -114,7 +115,7 @@ public class Database {
     }
 
     public synchronized String courseReg(String username, int courseNum){
-        if(isStudent(username) && isLogged(username) && isStudent(username) && courseAvailable(username, courseNum)){
+        if(isStudent(username) && isLogged(username) && courseAvailable(username, courseNum)){
             Users.get(username).courseReg(Courses.get(courseNum));
             return "ACK";
         }
@@ -214,8 +215,12 @@ public class Database {
     //check if the course exists, if the student is registered to the course, if the course has available seats and if
     // the student has all the KDAM courses
     public boolean courseAvailable(String username, int courseNum){
+        System.out.println("in courseAvailable");
+        System.out.println(Courses.get(courseNum).getAvailableSeats());
         if(courseExists(courseNum) && studentInCourse(username, courseNum) && Courses.get(courseNum).getAvailableSeats() > 0){
             for (Integer KDAM : Courses.get(courseNum).getKDAMCoursesList()) {
+                System.out.println("in the loop of KDAM");
+                System.out.println(Users.get(username).getMyCourses().contains(KDAM));
                 if (!Users.get(username).getMyCourses().contains(KDAM)){
                     return false;
                 }

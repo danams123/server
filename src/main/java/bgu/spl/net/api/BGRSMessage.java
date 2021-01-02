@@ -8,7 +8,10 @@ public class BGRSMessage implements Serializable {
     private String userName;
     private String Password;
     private short courseNum;
-    public String output;
+    private String output;
+    private String ACKER;
+    private boolean Case;
+
 
     //OPcode 1,2,3
     public BGRSMessage(short OPcode, String userName, String Password){
@@ -35,9 +38,11 @@ public class BGRSMessage implements Serializable {
     }
 
     //OPcode 12,13
-    public BGRSMessage(short OPcode, String output){
+    public BGRSMessage(short OPcode, String output, String ACKER, boolean Case){
         this.OPcode = OPcode;
         this.output = output;
+        this.ACKER = ACKER;
+        this.Case = Case;
     }
 
     public short getOPcode(){return OPcode;}
@@ -45,4 +50,6 @@ public class BGRSMessage implements Serializable {
     public String getPassword(){return Password;}
     public short getCourseNum(){return courseNum;}
     public String getOutput(){return output;}
+    public String getACKER(){return ACKER;}
+    public boolean getCase(){return Case;}
 }
