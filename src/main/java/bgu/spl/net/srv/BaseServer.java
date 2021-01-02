@@ -41,7 +41,7 @@ public abstract class BaseServer<T> implements Server<T> {
                         clientSock,
                         encdecFactory.get(),
                         protocolFactory.get());
-
+                System.out.println("connectionhandler created");
                 execute(handler);
             }
         } catch (IOException ex) {

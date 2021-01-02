@@ -9,10 +9,6 @@ import java.util.Arrays;
 
 public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
-    /*
-    TODO
-     */
-
     private byte[] bytes = new byte[1 << 10]; //start with 1k
     private int len = 0;
     private short OPcode = 0;
@@ -20,35 +16,50 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
     @Override
     public BGRSMessage decodeNextByte(byte nextByte) {
-      if(OPcode == 0){
-          if(len == 1){
-            bytes[len] = nextByte;
+        System.out.println("in decode, OPcode: " + OPcode);
+        System.out.println("the byte: " + nextByte);
+        if (OPcode == 0) {
+            if (len == 1) {
 //            OPcode = ByteBuffer.wrap(bytes).getInt();
-            len = 0;
-          }
-          else{
-              bytes[len++] = nextByte;
-          }
-      }
-      else if(OPcode == 1 || OPcode == 2 || OPcode == 3){
-          return dCase1(nextByte);
-      }
-      else if(OPcode == 4 || OPcode == 11){
-          short OP = OPcode;
-          OPcode = 0;
-          return new BGRSMessage(OP);
-      }
-      else if(OPcode == 8 || OPcode == 10){
-          return dCase2(nextByte);
-      }
-      else{
-          return dCase3(nextByte);
-      }
+                OPcode = (short) ((bytes[0] & 0xff) << 8);
+                OPcode += (short) (nextByte & 0xff);
+                len = 0;
+                if(OPcode != 4 && OPcode != 11){
+                    return null;
+                }
+//              System.out.println("in len = 1, OPcode: " + OPcode);
+            } else {
+//              System.out.println("in len != 1");
+                bytes[len++] = nextByte;
+            }
+        }
+        switch (OPcode) {
+            case 1:
+            case 2:
+            case 3:
+                return dCase1(nextByte);
+            case 4:
+            case 11:
+                System.out.println("in OP 4: " + OPcode);
+                short OP = OPcode;
+                OPcode = 0;
+                System.out.println(OP);
+                return new BGRSMessage(OP);
+            case 8:
+            case 10:
+                return dCase2(nextByte);
+            case 5:
+            case 6:
+            case 7:
+            case 9:
+                return dCase3(nextByte);
+            }
         return null;
-    }
+        }
 
     @Override
     public byte[] encode(BGRSMessage msg) {
+        System.out.println("in encode");
 //        return (msg.output + "\n").getBytes();
 //        return serializeObject(msg);
         byte[] bytesArr = new byte[5];
@@ -68,26 +79,29 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
         try {
             outputStream.write(bytesArr);
             outputStream.write((msg.getOutput() + '\n').getBytes());
+            System.out.println("finished encode now send");
             return outputStream.toByteArray( );
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalArgumentException("cannot serialize object", e);
         }
-
-
-
-    }//TODO need to check a different style
+    }
+    //TODO need to check a different style
 
     //OPcode 1,2,3
     private BGRSMessage dCase1(byte nextByte){
-        if (nextByte == 0 && output == null) {
+        System.out.println("in dcase1");
+        System.out.println(nextByte);
+        if (nextByte == '\0' && output == null) {
             output = popString();
+            System.out.println(output);
             return null;
         }
-        else if(nextByte == 0) {
+        else if(nextByte == '\0') {
             String toSend = output;
             output = null;
             short OP = OPcode;
             OPcode = 0;
+            System.out.println(toSend);
             return new BGRSMessage(OP, toSend, popString());
         }
         pushByte(nextByte);
@@ -111,7 +125,7 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
     //OPcode 8
     private BGRSMessage dCase3(byte nextByte){
-        if(nextByte == 0) {
+        if(nextByte == '\0') {
             short OP = OPcode;
             OPcode = 0;
             return new BGRSMessage(popString(), OP);
@@ -134,28 +148,5 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
         String result = new String(bytes, 0, len, StandardCharsets.UTF_8);
         len = 0;
         return result;
-    }
-
-    private byte[] serializeObject(BGRSMessage message) {
-        try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-
-            //placeholder for the object size
-            for (int i = 0; i < 4; i++) {
-                bytes.write(0);
-            }
-
-            ObjectOutput out = new ObjectOutputStream(bytes);
-            out.writeObject(message);
-            out.flush();
-            byte[] result = bytes.toByteArray();
-
-            //now write the object size
-            ByteBuffer.wrap(result).putInt(result.length - 4);
-            return result;
-
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("cannot serialize object", ex);
-        }
     }
 }

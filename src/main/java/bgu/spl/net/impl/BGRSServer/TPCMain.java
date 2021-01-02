@@ -11,6 +11,7 @@ public class TPCMain {
         BaseServer TPCserver = new BaseServer(Integer.parseInt(args[0]), () -> new BGRSProtocol(), BGRSEncoderDecoder::new) {
             @Override
             protected void execute(BlockingConnectionHandler handler) {
+                System.out.println("executed");
                 new Thread(handler).start();
             }
         };

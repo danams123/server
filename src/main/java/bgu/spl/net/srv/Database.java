@@ -90,6 +90,8 @@ public class Database {
     public String studentRegister(String username, String password){
         if(!userExists(username)){
             Users.put(username, new Student(username, password));
+            System.out.println(Users.get(username).getUserName());
+            System.out.println(Users.get(username).getPassword());
             return "ACK";
         }
         return "ERROR";
@@ -104,7 +106,7 @@ public class Database {
     }
 
     public String Logout(String username){
-        if(userExists(username)&& isLogged(username)){
+        if(userExists(username) && isLogged(username)){
             Users.get(username).Logout();
             return "ACK";
         }
@@ -189,7 +191,13 @@ public class Database {
     public boolean isStudent(String username){return Users.get(username) instanceof Student;}
 
    //check if the user exists
-    public boolean userExists(String username){return Users.containsKey(username);}
+    public boolean userExists(String username){
+        if(username == null){
+            return false;
+        }
+        System.out.println("got here in userexists");
+        System.out.println(username);
+        return Users.containsKey(username);}
 
     //check if the user is logged in to the system
     public boolean isLogged(String username){return Users.get(username).isLogged();}

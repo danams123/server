@@ -13,6 +13,7 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
     @Override
     public BGRSMessage process(BGRSMessage msg) {
         String output;
+        System.out.println("in process");
         if (msg.getOPcode() == 1) {
             output = DB.adminRegister(msg.getUserName(), msg.getPassword()) + " " + msg.getOPcode();
         }
@@ -21,13 +22,18 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
         }
         else if (msg.getOPcode() == 3) {
             output = DB.Login(msg.getUserName(), msg.getPassword()) + " " + msg.getOPcode();
-            if(output.equals("ACK")) {
+            System.out.println(output);
+            if(output.equals("ACK 3")) {
                 senderName = msg.getUserName();
+                System.out.println(senderName);
             }
         }
         else if (msg.getOPcode() == 4) {
-            shouldTerminate = true;
+            System.out.println(senderName);
             output = DB.Logout(senderName) + " " + msg.getOPcode();
+            if(output.equals("ACK 4")){
+                shouldTerminate = true;
+            }
         }
         else if (msg.getOPcode() == 5) {
             output = DB.courseReg(senderName, msg.getCourseNum()) + " " + msg.getOPcode();
