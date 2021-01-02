@@ -224,7 +224,8 @@ public class Database {
         }
         return false;
     }
-    public void clear (){
+
+    public void clear(){
         Users.clear();
         Courses.clear();
         coursesOrder = null;

@@ -33,6 +33,7 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
             output = DB.Logout(senderName) + " " + msg.getOPcode();
             if(output.equals("ACK 4")){
                 shouldTerminate = true;
+                DB.clear(); //TODO is it ok???
             }
         }
         else if (msg.getOPcode() == 5) {
