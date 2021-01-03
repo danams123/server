@@ -33,7 +33,6 @@ public class Student extends User{
 
     public void unRegister(Course toDel){
         toDel.delStudent(getUserName());
-        myCourses.remove(toDel.getCourseNum());
+        myCourses.remove(myCourses.indexOf(toDel.getCourseNum()));
     }
-
 }

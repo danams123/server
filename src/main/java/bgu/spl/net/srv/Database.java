@@ -1,5 +1,8 @@
 package bgu.spl.net.srv;
 
+import bgu.spl.net.srv.Course;
+import bgu.spl.net.srv.User;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -30,10 +33,10 @@ public class Database {
     }
     //to prevent user from creating new Database
     Database() {
-      this.Users = new ConcurrentHashMap<String, User>();
-      this.Courses = new ConcurrentHashMap<Integer, Course>();
-      this.coursesOrder = new ArrayList<Integer>();
-      initialize("./Courses.txt");//is it good???
+        this.Users = new ConcurrentHashMap<String, User>();
+        this.Courses = new ConcurrentHashMap<Integer, Course>();
+        this.coursesOrder = new ArrayList<Integer>();
+        initialize("./Courses.txt");//is it good???
     }
 
     /**
@@ -70,7 +73,7 @@ public class Database {
                     Courses.put(courseNum, new Course(courseNum, courseName, KDAM, maxNumOfStudents));
                     coursesOrder.add(courseNum);
                 }
-                System.out.println("initialized");
+//                System.out.println("initialized");
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;
@@ -91,8 +94,8 @@ public class Database {
     public String studentRegister(String username, String password){
         if(!userExists(username)){
             Users.put(username, new Student(username, password));
-            System.out.println(Users.get(username).getUserName());
-            System.out.println(Users.get(username).getPassword());
+//            System.out.println(Users.get(username).getUserName());
+//            System.out.println(Users.get(username).getPassword());
             return "ACK";
         }
         return "ERROR";
@@ -115,6 +118,10 @@ public class Database {
     }
 
     public synchronized String courseReg(String username, int courseNum){
+        System.out.println("in coursereg");
+        System.out.println(isStudent(username));
+        System.out.println(isLogged(username));
+
         if(isStudent(username) && isLogged(username) && courseAvailable(username, courseNum)){
             Users.get(username).courseReg(Courses.get(courseNum));
             return "ACK";
@@ -124,7 +131,7 @@ public class Database {
 
     public String KDAMCheck(String username, int courseNum){
         if(isStudent(username) && isLogged(username) && courseExists(courseNum)) {
-            return Arrays.toString(Courses.get(courseNum).getKDAMCoursesList());
+            return stringOrg(Arrays.toString(Courses.get(courseNum).getKDAMCoursesList()));
         }
         return "ERROR";
     }
@@ -140,7 +147,7 @@ public class Database {
             }
             toSend.sort(String::compareTo);
             return "Course: (" + courseNum + ") " + course.getCourseName() + "\0Seats Available: " + course.getAvailableSeats()
-                    + " / " + course.getNumOfMaxStudents() + "\0Students Registered: " + toSend;
+                    + "/" + course.getNumOfMaxStudents() + "\0Students Registered: " + toSend;
         }
         return "ERROR";
     }
@@ -172,15 +179,23 @@ public class Database {
 
     public String getMyCourses(String username){
         if(isStudent(username) && isLogged(username)){
-            String str = Users.get(username).getMyCourses().toString();
-            String[] s = str.split(" ");
-            str = null;
-            for(String elem: s){
-                str = str + elem;
-            }
-            return str;
+            return stringOrg(Users.get(username).getMyCourses().toString());
         }
         return "ERROR";
+    }
+
+    public String stringOrg(String str){
+        String [] s = str.split(",");
+        str = null;
+        for(String elem: s){
+            if(str == null){
+                str = elem;
+            }
+            else {
+                str = str +","+ elem.substring(1);
+            }
+        }
+        return str;
     }
 
     public ConcurrentHashMap<Integer, Course> getCourses(){return Courses;}
@@ -190,20 +205,20 @@ public class Database {
     //A getter for Student so the course he registers to will be put in the right place organized as how we got in from the file
     public ArrayList<Integer> getCoursesOrder(){return coursesOrder;}
 
-//checks for the functions
+    //checks for the functions
     //Admin check - also checks existence
     public boolean isAdmin(String username){return Users.get(username) instanceof Admin;}
 
     //Student check - also checks existence
     public boolean isStudent(String username){return Users.get(username) instanceof Student;}
 
-   //check if the user exists
+    //check if the user exists
     public boolean userExists(String username){
         if(username == null){
             return false;
         }
-        System.out.println("got here in userexists");
-        System.out.println(username);
+//        System.out.println("got here in userexists");
+//        System.out.println(username);
         return Users.containsKey(username);}
 
     //check if the user is logged in to the system
@@ -222,11 +237,14 @@ public class Database {
     // the student has all the KDAM courses
     public boolean courseAvailable(String username, int courseNum){
         System.out.println("in courseAvailable");
+        System.out.println(courseNum);
+        System.out.println(courseExists(courseNum));
+        System.out.println(studentInCourse(username,courseNum));
 //        System.out.println(Courses.get(courseNum).getAvailableSeats());
         if(courseExists(courseNum) && !studentInCourse(username, courseNum) && Courses.get(courseNum).getAvailableSeats() > 0){
             for (Integer KDAM : Courses.get(courseNum).getKDAMCoursesList()) {
-                System.out.println("in the loop of KDAM");
-                System.out.println(Users.get(username).getMyCourses().contains(KDAM));
+//                System.out.println("in the loop of KDAM");
+//                System.out.println(Users.get(username).getMyCourses().contains(KDAM));
                 if (!Users.get(username).getMyCourses().contains(KDAM)){
                     return false;
                 }

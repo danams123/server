@@ -19,16 +19,20 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
         System.out.println("in decode, OPcode: " + OPcode);
         System.out.println("the byte: " + nextByte);
         if (OPcode == 0) {
+            System.out.println("in OP = 0");
             if (len == 1) {
+                System.out.println("in len = 1");
 //            OPcode = ByteBuffer.wrap(bytes).getInt();
                 OPcode = (short) ((bytes[0] & 0xff) << 8);
                 OPcode += (short) (nextByte & 0xff);
                 len = 0;
                 if(OPcode != 4 && OPcode != 11){
+                    System.out.println("in finish");
                     return null;
                 }
 //              System.out.println("in len = 1, OPcode: " + OPcode);
             } else {
+                System.out.println("in len != 1");
 //              System.out.println("in len != 1");
                 bytes[len++] = nextByte;
             }
@@ -40,19 +44,18 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
                 return dCase1(nextByte);
             case 4:
             case 11:
-                System.out.println("in OP 4: " + OPcode);
                 short OP = OPcode;
                 OPcode = 0;
                 System.out.println(OP);
                 return new BGRSMessage(OP);
             case 8:
-            case 10:
-                return dCase2(nextByte);
+                return dCase3(nextByte);
             case 5:
             case 6:
             case 7:
             case 9:
-                return dCase3(nextByte);
+            case 10:
+                return dCase2(nextByte);
             }
         return null;
         }
@@ -115,7 +118,9 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
     //OPcode 5,6,7,9,10
     private BGRSMessage dCase2(byte nextByte){
+        System.out.println("in dcase 2");
         if(len == 1){
+            System.out.println("in len = 1 in dcase 2");
             short courseNum = (short) ((bytes[0] & 0xff) << 8);
             courseNum += (short) (nextByte & 0xff);
             len = 0;
@@ -123,13 +128,13 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
             OPcode = 0;
             return new BGRSMessage(OP,courseNum);
         }
-        bytes[len++] = nextByte;
         pushByte(nextByte);
         return null;
     }
 
     //OPcode 8
     private BGRSMessage dCase3(byte nextByte){
+        System.out.println("in dcase 3");
         if(nextByte == '\0') {
             short OP = OPcode;
             OPcode = 0;
