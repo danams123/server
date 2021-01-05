@@ -21,19 +21,23 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
             output = DB.studentRegister(msg.getUserName(), msg.getPassword());
         }
         else if (msg.getOPcode() == 3) {
-            output = DB.Login(msg.getUserName(), msg.getPassword());
-            System.out.println(output);
-            if(output.equals("ACK")) {
-                senderName = msg.getUserName();
-                System.out.println(senderName);
+            if(senderName == null) {
+                output = DB.Login(msg.getUserName(), msg.getPassword());
+                System.out.println(output);
+                if (output.equals("ACK")) {
+                    senderName = msg.getUserName();
+                    System.out.println(senderName);
+                }
+            }
+            else{
+                output = "ERROR";
             }
         }
         else if (msg.getOPcode() == 4) {
             System.out.println(senderName);
             output = DB.Logout(senderName);
-            if(output.equals("ACK 4")){
+            if(output.equals("ACK")){
                 shouldTerminate = true;
-                DB.clear(); //TODO is it ok???
             }
         }
         else if (msg.getOPcode() == 5) {
@@ -52,7 +56,7 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
             output = DB.isRegistered(senderName, msg.getCourseNum());
         }
         else if (msg.getOPcode() == 10) {
-            output = DB.unRegister(msg.getUserName(), msg.getCourseNum());
+            output = DB.unRegister(senderName, msg.getCourseNum());
         }
         else {
             output = DB.getMyCourses(senderName);
@@ -63,6 +67,7 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
             return new BGRSMessage(msg.getOPcode(), "", "ERROR", false);
         }
         else if(output.equals("ACK")) {
+            System.out.println(shouldTerminate);
             System.out.println("in ack");
             return new BGRSMessage(msg.getOPcode(), "","ACK", false);
         }

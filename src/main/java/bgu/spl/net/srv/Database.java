@@ -118,9 +118,9 @@ public class Database {
     }
 
     public synchronized String courseReg(String username, int courseNum){
-        System.out.println("in coursereg");
-        System.out.println(isStudent(username));
-        System.out.println(isLogged(username));
+//        System.out.println("in coursereg");
+//        System.out.println(isStudent(username));
+//        System.out.println(isLogged(username));
 
         if(isStudent(username) && isLogged(username) && courseAvailable(username, courseNum)){
             Users.get(username).courseReg(Courses.get(courseNum));
@@ -207,10 +207,20 @@ public class Database {
 
     //checks for the functions
     //Admin check - also checks existence
-    public boolean isAdmin(String username){return Users.get(username) instanceof Admin;}
+    public boolean isAdmin(String username){
+        if(username != null) {
+            return Users.get(username) instanceof Admin;
+        }
+        return false;
+    }
 
     //Student check - also checks existence
-    public boolean isStudent(String username){return Users.get(username) instanceof Student;}
+    public boolean isStudent(String username){
+        if(username != null) {
+            return Users.get(username) instanceof Student;
+        }
+        return false;
+    }
 
     //check if the user exists
     public boolean userExists(String username){
@@ -237,9 +247,9 @@ public class Database {
     // the student has all the KDAM courses
     public boolean courseAvailable(String username, int courseNum){
         System.out.println("in courseAvailable");
-        System.out.println(courseNum);
-        System.out.println(courseExists(courseNum));
-        System.out.println(studentInCourse(username,courseNum));
+//        System.out.println(courseNum);
+//        System.out.println(courseExists(courseNum));
+//        System.out.println(studentInCourse(username,courseNum));
 //        System.out.println(Courses.get(courseNum).getAvailableSeats());
         if(courseExists(courseNum) && !studentInCourse(username, courseNum) && Courses.get(courseNum).getAvailableSeats() > 0){
             for (Integer KDAM : Courses.get(courseNum).getKDAMCoursesList()) {

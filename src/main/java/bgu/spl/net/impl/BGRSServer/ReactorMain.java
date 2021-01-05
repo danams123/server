@@ -18,5 +18,7 @@ public class ReactorMain {
                 () -> new BGRSProtocol(), //protocol factory
                 BGRSEncoderDecoder::new //message encoder decoder factory
         ).serve();
+        Database DB = Database.getInstance();
+        DB.clear();
     }
 }

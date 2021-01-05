@@ -78,6 +78,8 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
         bytesArr[1] = (byte)(OPcode & 0xFF);
         bytesArr[2] = (byte)((msg.getOPcode() >> 8) & 0xFF);
         bytesArr[3] = (byte)(msg.getOPcode() & 0xFF);
+        System.out.println(bytesArr[2]);
+        System.out.println(bytesArr[3]);
         bytesArr[4] = '\n';
         OPcode = 0;
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
@@ -88,7 +90,7 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
                 outputStream.write((msg.getOutput() + '\n').getBytes());
             }
             System.out.println("finished encode now send");
-            return outputStream.toByteArray( );
+            return outputStream.toByteArray();
         } catch (IOException e) {
             throw new IllegalArgumentException("cannot serialize object", e);
         }
