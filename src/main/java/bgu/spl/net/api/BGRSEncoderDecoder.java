@@ -9,31 +9,27 @@ import java.util.Arrays;
 
 public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
-    private byte[] bytes = new byte[1 << 10]; //start with 1k
+    private byte[] bytes = new byte[1 << 10];
     private int len = 0;
     private short OPcode = 0;
     private String output = null;
 
     @Override
     public BGRSMessage decodeNextByte(byte nextByte) {
-        System.out.println("in decode, OPcode: " + OPcode);
-        System.out.println("the byte: " + nextByte);
+        //getting the first to bytes - the OPcode.
         if (OPcode == 0) {
-            System.out.println("in OP = 0");
+            //seconde byte of the OPcode
             if (len == 1) {
-                System.out.println("in len = 1");
-//            OPcode = ByteBuffer.wrap(bytes).getInt();
                 OPcode = (short) ((bytes[0] & 0xff) << 8);
                 OPcode += (short) (nextByte & 0xff);
+                //reset the bytes array after saving the OPcode
                 len = 0;
                 if(OPcode != 4 && OPcode != 11){
-                    System.out.println("in finish");
+                    //in case OPcode is 4 or 11 we automatically send it to the protocol because we dont need any more
+                    // bytes to the message
                     return null;
                 }
-//              System.out.println("in len = 1, OPcode: " + OPcode);
             } else {
-                System.out.println("in len != 1");
-//              System.out.println("in len != 1");
                 bytes[len++] = nextByte;
             }
         }
@@ -46,7 +42,6 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
             case 11:
                 short OP = OPcode;
                 OPcode = 0;
-                System.out.println(OP);
                 return new BGRSMessage(OP);
             case 8:
                 return dCase3(nextByte);
@@ -62,34 +57,33 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
     @Override
     public byte[] encode(BGRSMessage msg) {
-        System.out.println("in encode");
-//        return (msg.output + "\n").getBytes();
-//        return serializeObject(msg);
         byte[] bytesArr = new byte[5];
+        //checking if it's ack or error message
         if(msg.getACKER().equals("ACK")){
-            System.out.println("in ack 2");
             OPcode = 12;
         }
         else{
-            System.out.println("in error 2");
             OPcode = 13;
         }
+        //encoding the OPcode
         bytesArr[0] = (byte)((OPcode >> 8) & 0xFF);
         bytesArr[1] = (byte)(OPcode & 0xFF);
         bytesArr[2] = (byte)((msg.getOPcode() >> 8) & 0xFF);
         bytesArr[3] = (byte)(msg.getOPcode() & 0xFF);
-        System.out.println(bytesArr[2]);
-        System.out.println(bytesArr[3]);
-        bytesArr[4] = '\n';
         OPcode = 0;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
-            outputStream.write(bytesArr);
+            //if we need to add optional output
             if(msg.getCase()) {
-                System.out.println("in special case 2");
-                outputStream.write((msg.getOutput() + '\n').getBytes());
+                bytesArr[4] = '\n';
+                outputStream.write(bytesArr);
+                outputStream.write((msg.getOutput() + '\0').getBytes());
             }
-            System.out.println("finished encode now send");
+            else{
+                // no optional output is added - '\0' ends the message
+                bytesArr[4] = '\0';
+                outputStream.write(bytesArr);
+            }
             return outputStream.toByteArray();
         } catch (IOException e) {
             throw new IllegalArgumentException("cannot serialize object", e);
@@ -99,19 +93,17 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
     //OPcode 1,2,3
     private BGRSMessage dCase1(byte nextByte){
-        System.out.println("in dcase1");
-        System.out.println(nextByte);
+        //the first word
         if (nextByte == '\0' && output == null) {
             output = popString();
-            System.out.println(output);
             return null;
         }
+        //the second word
         else if(nextByte == '\0') {
             String toSend = output;
             output = null;
             short OP = OPcode;
             OPcode = 0;
-            System.out.println(toSend);
             return new BGRSMessage(OP, toSend, popString());
         }
         pushByte(nextByte);
@@ -120,9 +112,8 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
 
     //OPcode 5,6,7,9,10
     private BGRSMessage dCase2(byte nextByte){
-        System.out.println("in dcase 2");
+        //the second byte of courseNum
         if(len == 1){
-            System.out.println("in len = 1 in dcase 2");
             short courseNum = (short) ((bytes[0] & 0xff) << 8);
             courseNum += (short) (nextByte & 0xff);
             len = 0;
@@ -130,13 +121,14 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
             OPcode = 0;
             return new BGRSMessage(OP,courseNum);
         }
+        //the first byte of courseNum
         pushByte(nextByte);
         return null;
     }
 
     //OPcode 8
     private BGRSMessage dCase3(byte nextByte){
-        System.out.println("in dcase 3");
+        //get the first and only word
         if(nextByte == '\0') {
             short OP = OPcode;
             OPcode = 0;
@@ -155,8 +147,6 @@ public class BGRSEncoderDecoder implements MessageEncoderDecoder<BGRSMessage> {
     }
 
     private String popString() {
-        //notice that we explicitly requesting that the string will be decoded from UTF-8
-        //this is not actually required as it is the default encoding in java.
         String result = new String(bytes, 0, len, StandardCharsets.UTF_8);
         len = 0;
         return result;

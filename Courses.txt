@@ -1,4 +1,4 @@
-101|Algebra1|[]|2
+101|Algebra1|[]|5
 102|Infi1|[]|5
 103|Discrete|[]|5
 111|CS-intro|[]|5

@@ -8,6 +8,7 @@ import bgu.spl.net.srv.Database;
 import bgu.spl.net.srv.Server;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class ReactorMain {
@@ -18,6 +19,7 @@ public class ReactorMain {
                 () -> new BGRSProtocol(), //protocol factory
                 BGRSEncoderDecoder::new //message encoder decoder factory
         ).serve();
+        //clearing the database for next use
         Database DB = Database.getInstance();
         DB.clear();
     }

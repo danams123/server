@@ -13,11 +13,11 @@ public class TPCMain {
         BaseServer<BGRSMessage> TPCserver = new BaseServer<BGRSMessage>(Integer.parseInt(args[0]), () -> new BGRSProtocol(), BGRSEncoderDecoder::new) {
             @Override
             protected void execute(BlockingConnectionHandler<BGRSMessage> handler) {
-                System.out.println("executed");
                 new Thread(handler).start();
             }
         };
         TPCserver.serve();
+        //clearing the database for next use
         Database DB = Database.getInstance();
         DB.clear();
     }

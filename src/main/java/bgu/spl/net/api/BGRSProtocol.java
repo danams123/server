@@ -13,20 +13,31 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
     @Override
     public BGRSMessage process(BGRSMessage msg) {
         String output;
-        System.out.println("in process");
         if (msg.getOPcode() == 1) {
-            output = DB.adminRegister(msg.getUserName(), msg.getPassword());
+            //if senderName isnt null it means the client is logged in and can't reg any more users.
+            if(senderName == null) {
+                output = DB.adminRegister(msg.getUserName(), msg.getPassword());
+            }
+            else {
+                output = "ERROR";
+            }
         }
         else if (msg.getOPcode() == 2) {
-            output = DB.studentRegister(msg.getUserName(), msg.getPassword());
+            //if senderName isnt null it means the client is logged in and can't reg any more users.
+            if(senderName == null) {
+                output = DB.studentRegister(msg.getUserName(), msg.getPassword());
+            }
+            else{
+                output = "ERROR";
+            }
         }
         else if (msg.getOPcode() == 3) {
+            // can't log in if senderName isnt null - it means its alreadly logged in
             if(senderName == null) {
                 output = DB.Login(msg.getUserName(), msg.getPassword());
-                System.out.println(output);
+                // if logged in successfully to the database, we save the username for future use
                 if (output.equals("ACK")) {
                     senderName = msg.getUserName();
-                    System.out.println(senderName);
                 }
             }
             else{
@@ -34,8 +45,8 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
             }
         }
         else if (msg.getOPcode() == 4) {
-            System.out.println(senderName);
             output = DB.Logout(senderName);
+            //if we logged out successfully we signal the connectionHandler its time to terminate
             if(output.equals("ACK")){
                 shouldTerminate = true;
             }
@@ -61,18 +72,16 @@ public class BGRSProtocol implements MessagingProtocol<BGRSMessage> {
         else {
             output = DB.getMyCourses(senderName);
         }
+        //build an error message
         if(output.equals("ERROR")){
-            System.out.println("in error");
-//            output = output + " " + msg.getOPcode();
             return new BGRSMessage(msg.getOPcode(), "", "ERROR", false);
         }
+        //build an ack message
         else if(output.equals("ACK")) {
-            System.out.println(shouldTerminate);
-            System.out.println("in ack");
             return new BGRSMessage(msg.getOPcode(), "","ACK", false);
         }
+        //build an ack message with optional data
         else{
-            System.out.println("in special ack");
             return new BGRSMessage(msg.getOPcode(), output, "ACK", true);
         }
     }

@@ -26,6 +26,8 @@ public class Student extends User{
                 stop = true;
             }
         }
+        //if the stop is false, the course we're trying to add is in the end of the courses list. as ordered in the
+        //courses file.
         if(!stop){
             myCourses.add(toAdd.getCourseNum());
         }

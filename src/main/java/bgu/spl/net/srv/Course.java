@@ -28,8 +28,6 @@ public class Course {
     public int getNumOfMaxStudents(){return numOfMaxStudents;}
 
     public int getAvailableSeats(){
-        System.out.println(numOfMaxStudents);
-        System.out.println(Students.size());
         return numOfMaxStudents - Students.size();}
 
     public ConcurrentHashMap<String, String> getStudents(){return Students;}
